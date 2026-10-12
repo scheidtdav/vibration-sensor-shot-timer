@@ -130,11 +130,31 @@ static void renderRunning(uint32_t elapsedMs) {
            (unsigned long)sec, (unsigned long)ds);
   drawCenteredText(buf, 16, 3);
 
-  // progress bar for the good-shot band
-  float frac = (float)elapsedMs / (float)GOOD_MAX_MS;
-  if (frac > 1.0f) frac = 1.0f;
+  // Progress bar with a hatched target zone (GOOD_MIN..GOOD_MAX).
+  // Bar layout: 2px border, 4px inner band (y 58..61).
+  // The target zone carries a diagonal hatch pattern; the elapsed fill
+  // is drawn solid, so you can see the shot entering and crossing the zone.
   display.drawRect(0, 56, SCREEN_WIDTH, 8, SSD1306_WHITE);
-  display.fillRect(2, 58, (int)((SCREEN_WIDTH - 4) * frac), 4, SSD1306_WHITE);
+  int bar_w = SCREEN_WIDTH - 4;
+  int zone_x = 2 + (int)(bar_w * ((float)GOOD_MIN_MS / (float)GOOD_MAX_MS));
+  int zone_w = bar_w - (zone_x - 2);
+
+  // hatch the target zone: alternating pixels on two rows
+  for (int x = zone_x; x < 2 + bar_w; x += 2) {
+    display.drawPixel(x, 58, SSD1306_WHITE);
+    display.drawPixel(x + 1, 59, SSD1306_WHITE);
+    display.drawPixel(x, 60, SSD1306_WHITE);
+    display.drawPixel(x + 1, 61, SSD1306_WHITE);
+  }
+
+  // elapsed fill (solid), drawn after the hatch so it stands out
+  int fill_w = (int)(bar_w * frac);
+  display.fillRect(2, 58, fill_w, 4, SSD1306_WHITE);
+
+  // edge of the fill drawn as a distinct 2px-wide leading edge
+  if (fill_w > 0 && fill_w < bar_w) {
+    display.fillRect(2 + fill_w, 58, 2, 4, SSD1306_INVERSE);
+  }
   display.display();
 }
 
