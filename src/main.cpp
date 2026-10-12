@@ -135,9 +135,12 @@ static void renderRunning(uint32_t elapsedMs) {
   // The target zone carries a diagonal hatch pattern; the elapsed fill
   // is drawn solid, so you can see the shot entering and crossing the zone.
   display.drawRect(0, 56, SCREEN_WIDTH, 8, SSD1306_WHITE);
+  float frac = (float)elapsedMs / (float)GOOD_MAX_MS;
+  if (frac > 1.0f) frac = 1.0f;
   int bar_w = SCREEN_WIDTH - 4;
   int zone_x = 2 + (int)(bar_w * ((float)GOOD_MIN_MS / (float)GOOD_MAX_MS));
   int zone_w = bar_w - (zone_x - 2);
+  (void)zone_w;  // zone spans to the bar end; kept for clarity
 
   // hatch the target zone: alternating pixels on two rows
   for (int x = zone_x; x < 2 + bar_w; x += 2) {
