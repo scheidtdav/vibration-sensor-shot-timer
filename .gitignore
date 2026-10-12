@@ -1,0 +1,32 @@
+# PlatformIO build output
+.pio/
+.pioenvs/
+.piolibdeps/
+
+# VS Code / PlatformIO IDE
+.vscode/
+!.vscode/extensions.json
+.idea/
+*.code-workspace
+
+# CMake / ESP-IDF artifacts (if the project ever migrates)
+CMakeLists.txt.user
+sdkconfig.old
+build/
+
+# Compiled objects / binaries (belt and braces outside .pio)
+*.o
+*.a
+*.elf
+*.bin
+!src/*.bin
+
+# Claude Code / editor droppings
+.claude/
+CLAUDE.md
+*.swp
+*~
+
+# OS noise
+.DS_Store
+Thumbs.db
