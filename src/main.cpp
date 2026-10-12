@@ -77,11 +77,43 @@ static void drawCenteredText(const char* text, int16_t y, int16_t size) {
   display.print(text);
 }
 
+// Draw a small espresso cup with saucer and steam, centered on screen.
+// Pure pixel drawing, no bitmap data needed.
+static void drawEspressoCup(int16_t cx, int16_t cy) {
+  // --- cup body ---
+  // trapezoid: wide at the rim (top), narrower at the base
+  display.fillTriangle(cx - 12, cy - 10, cx + 12, cy - 10,
+                       cx - 6, cy + 4, SSD1306_WHITE);
+  display.fillTriangle(cx + 12, cy - 10, cx - 6, cy + 4,
+                       cx + 6, cy + 4, SSD1306_WHITE);
+  // hollow it out so the cup has walls (espresso "crema" stays visible)
+  display.fillTriangle(cx - 9, cy - 9, cx + 9, cy - 9,
+                       cx - 4, cy + 2, SSD1306_BLACK);
+  display.fillTriangle(cx + 9, cy - 9, cx - 4, cy + 2,
+                       cx + 4, cy + 2, SSD1306_BLACK);
+  // re-add a crema line at the top of the coffee
+  display.fillRect(cx - 8, cy - 9, 16, 2, SSD1306_WHITE);
+
+  // --- handle ---
+  // a ring to the right of the cup; it just touches the cup wall,
+  // which reads as an attached handle
+  display.fillCircle(cx + 14, cy - 4, 4, SSD1306_WHITE);
+  display.fillCircle(cx + 14, cy - 4, 2, SSD1306_BLACK);
+
+  // --- saucer ---
+  display.fillTriangle(cx - 16, cy + 5, cx + 16, cy + 5,
+                       cx - 8, cy + 9, SSD1306_WHITE);
+  display.fillTriangle(cx + 16, cy + 5, cx - 8, cy + 9,
+                       cx + 8, cy + 9, SSD1306_WHITE);
+  // thin line between cup base and saucer
+  display.drawFastHLine(cx - 7, cy + 5, 14, SSD1306_WHITE);
+}
+
 static void renderIdle() {
   display.clearDisplay();
   display.setTextColor(SSD1306_WHITE);
-  drawCenteredText("AROMA", 8, 2);
-  drawCenteredText("SHOT TIMER", 32, 1);
+  drawEspressoCup(SCREEN_WIDTH / 2, 24);          // cup in the upper half
+  drawCenteredText("SHOT TIMER", 44, 1);  // message centered beneath it
   display.display();
 }
 
