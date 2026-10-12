@@ -44,9 +44,15 @@ static uint32_t shotCount = 0;
 static uint32_t lastShotMs = 0;
 
 // ---------------- Detection ----------------
-// SW-420 modules output LOW pulses when vibration is present (open-collector-ish:
-// DO idles HIGH at VCC, pulled LOW on vibration). We treat "any LOW within the
-// last 100 ms" as vibrating, which forgives the sensor's own duty cycle.
+// The SW-420 vibration element is NORMALLY CLOSED: at rest the circuit is
+// closed and the module's DO idles LOW (comparator output near GND). When
+// vibration shakes the switch open, DO pulses HIGH. We therefore treat "any
+// HIGH within the last 100 ms" as vibrating, which forgives the sensor's
+// own duty cycle.
+//
+// NOTE: some clone modules invert this (DO idles HIGH, pulses LOW). If your
+// sensor triggers constantly at rest, flip ACTIVE_LEVEL below to LOW.
+constexpr int VIBRATION_ACTIVE_LEVEL = HIGH;  // DO pulses HIGH on vibration
 constexpr uint32_t VIB_PULSE_WINDOW_MS = 100;
 
 static void pollVibration() {
@@ -56,8 +62,8 @@ static void pollVibration() {
   if (now - lastSampleMs < 5) return;  // 200 Hz sampling is plenty
   lastSampleMs = now;
 
-  bool rawLow = (digitalRead(PIN_VIBRATION_IN) == LOW);
-  if (rawLow) vib.lastVibMs = now;
+  bool rawActive = (digitalRead(PIN_VIBRATION_IN) == VIBRATION_ACTIVE_LEVEL);
+  if (rawActive) vib.lastVibMs = now;
   vib.currentlyVibrating = (now - vib.lastVibMs) < VIB_PULSE_WINDOW_MS;
 }
 
@@ -147,7 +153,7 @@ static void logStatus() {
 
 void setup() {
   Serial.begin(115200);
-  pinMode(PIN_VIBRATION_IN, INPUT_PULLUP);
+  pinMode(PIN_VIBRATION_IN, VIBRATION_ACTIVE_LEVEL == HIGH ? INPUT_PULLDOWN : INPUT_PULLUP);
 
   Wire.begin(PIN_SDA, PIN_SCL);
   if (!display.begin(SSD1306_SWITCHCAPVCC, OLED_I2C_ADDR)) {

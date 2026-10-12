@@ -36,9 +36,13 @@ OLED; silicone stranded 26 AWG wire (solid core fatigue-breaks under vibration);
 - State machine: `IDLE → RUNNING → DONE` (see `src/main.cpp`).
 - A shot is "running" after 500 ms of sustained vibration; it ends after
   800 ms of quiet. Triggers shorter than 2 s are ignored (door slams, knocks).
-- The SW-420 output is LOW-pulsing during vibration; any LOW within the last
-  100 ms counts as vibration, which tolerates the sensor's duty cycle.
+- The SW-420 vibration element is normally closed: DO idles LOW at rest and
+  pulses HIGH on vibration. Any HIGH within the last 100 ms counts as
+  vibration, which tolerates the sensor's duty cycle.
 - Good-shot band defaults to 20–30 s (`GOOD_MIN_MS` / `GOOD_MAX_MS`).
+- If your module clone inverts the output (DO idles HIGH), set
+  `VIBRATION_ACTIVE_LEVEL` to `LOW` in `src/main.cpp` — the input pull
+  resistor follows automatically.
 
 ### Tuning
 
@@ -48,8 +52,8 @@ log while running shots. If it false-triggers or misses:
 - `VIB_ON_WINDOW_MS` / `VIB_OFF_WINDOW_MS` — detection persistence.
 - `VIB_PULSE_WINDOW_MS` — how forgiving the pulse detector is.
 - Move the sensor closer to the pump if detection is marginal.
-- If your SW-420 clone idles LOW instead of HIGH, flip the `== LOW` check
-  in `pollVibration()` to `== HIGH`.
+- If it triggers constantly at rest, check the on-board potentiometer first
+  (threshold trim), then verify `VIBRATION_ACTIVE_LEVEL` matches your module.
 
 ## Case
 
