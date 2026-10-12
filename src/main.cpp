@@ -113,7 +113,7 @@ static void renderIdle() {
   display.clearDisplay();
   display.setTextColor(SSD1306_WHITE);
   drawEspressoCup(SCREEN_WIDTH / 2, 24);          // cup in the upper half
-  drawCenteredText("SHOT TIMER", 44, 1);  // message centered beneath it
+  drawCenteredText("SHOT TIMER", 44, 2);  // message centered beneath it
   display.display();
 }
 
