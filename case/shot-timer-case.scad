@@ -9,11 +9,8 @@
 //   lies on the print bed — that is the intended print orientation,
 //   no supports needed (12 deg overhang).
 //
-// Mounting: magnetic. Two 8x3mm magnets in the pod's back face grab
-// two counterpart magnets (or steel washers) set into a separate
-// backing plate that is stuck to the machine with VHB tape.
-//
-// Part 2 of this file renders the backing plate.
+// Mounting: magnetic. Two 8x3mm magnets in the pod's back face grip
+// the machine's steel panels directly.
 
 // ---------------- Parameters ----------------
 wall      = 3.6;    // wall thickness (thick enough for blind magnet pockets)
