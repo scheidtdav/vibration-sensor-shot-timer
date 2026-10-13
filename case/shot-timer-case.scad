@@ -29,14 +29,10 @@ oled_view_h = 12.0;   // window height (glass is ~11mm tall at size-3 text)
 oled_seat   = 2.4;    // gap between inner front face and the seat plate (PCB thickness + slop)
 plate_t     = 2.0;    // seat plate thickness
 
-// Magnets: 8x3mm neodymium discs
+// Magnets: 8x3mm neodymium discs, pressed into the pod's back pockets
+// and gripping the machine's steel panels directly
 magnet_d = 8.2;
 magnet_t = 3.0;
-
-// Backing plate (Part 2)
-bp_h = 32;           // plate height (x)
-bp_w = 40;           // plate width  (z)
-bp_t = 3.4;          // plate thickness
 
 $fn = 64;
 
@@ -137,22 +133,8 @@ module usb_slot() {
     cube([wall + 0.2, 9, 12]);
 }
 
-// ---------------- Part 2: backing plate ----------------
-// Sticks to the machine with VHB tape; holds the counterpart magnets
-// (or steel washers) that the pod grabs. Same magnet x-spacing as the pod.
-module backing_plate() {
-  difference() {
-    translate([-bp_h/2, 0, -bp_w/2]) cube([bp_h, bp_t, bp_w]);
-    for (mx = [wall + magnet_d/2 + 1 - outer_h/2, outer_h/2 - wall - magnet_d/2 - 1])
-      translate([mx, bp_t + 0.05, 0])
-        rotate([90, 0, 0])
-          cylinder(d = magnet_d, h = magnet_t);
-  }
-}
-
 // ---------------- Render (print orientation) ----------------
 // rotate([90,0,0]) puts the pod's flat back face (y=0) onto the bed (z=0):
 // the tilted front face points up at 12 deg — printable without supports.
-// The backing plate prints flat beside it.
+// The pod's magnets grab the machine's steel panels directly.
 rotate([90, 0, 0]) pod_body();
-translate([0, 0, -(inner_w + 2*wall) - 15]) backing_plate();

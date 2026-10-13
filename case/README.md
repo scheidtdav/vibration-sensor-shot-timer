@@ -1,29 +1,26 @@
 # Case — OLED display pod (v2)
 
-Two-part, magnetically mounted case for the shot timer.
+Magnetically mounted display pod for the shot timer.
 
 ## Files
 
-- `shot-timer-case.scad` — parametric OpenSCAD model rendering both parts:
-  - **Pod**: tilted display case holding the OLED, ESP32-C3 and SW-420
-  - **Backing plate**: thin plate that sticks to the machine (VHB tape) and
-    carries the counterpart magnets
+- `shot-timer-case.scad` — parametric OpenSCAD model:
+  - **Pod**: tilted display case holding the OLED, ESP32-C3 and SW-420,
+    magnetically attached to the machine's steel panels
 
 ## Magnetic mounting
 
-Four 8×3 mm neodymium disc magnets total (2 per part):
+Two 8×3 mm neodymium disc magnets:
 
-1. Press two magnets into the **blind pockets in the pod's back face** —
+1. Press both magnets into the **blind pockets in the pod's back face** —
    pockets are 3.0 mm deep in a 3.6 mm wall, so a 0.6 mm floor keeps them
    captive; add a drop of CA glue for permanence.
-2. Press the two counterpart magnets into the **backing plate's pockets**
-   (mind the polarity — they must attract the pod's magnets across the gap).
-3. Stick the backing plate to the machine with 3M VHB 4910/300LSE tape.
-   The Plus Aroma's panels are plastic, so the plate is the steel/magnet
-   interface the pod grabs onto.
+2. Stick the pod straight onto the machine — the Plus Aroma's steel panels
+   are the counter surface, no adapter plate or tape needed.
 
-Pull the pod off for battery/USB flashing; snap it back on — the magnet
-spacing is identical on both parts, so it self-locates.
+For a stronger grip, let the magnets sit slightly proud: use the CA drop
+sparing, or place a 0.2 mm shim under each magnet so its face nearly touches
+the panel. Pull the pod off for USB flashing; snap it back on.
 
 ## Printing
 
@@ -31,8 +28,8 @@ spacing is identical on both parts, so it self-locates.
 - 0.2 mm layers, 3 perimeters, 20% infill, **no supports needed**: the model
   renders in print orientation — pod back face down, 12° tilt within
   printable overhang.
-- Render STL: `openscad -o case.stl shot-timer-case.scad` (both parts
-  included; separate them in your slicer or comment out one render line).
+- Render STL: `openscad -o case.stl shot-timer-case.scad` (renders the pod
+  in print orientation).
 
 ## Assembly
 
@@ -47,7 +44,7 @@ spacing is identical on both parts, so it self-locates.
 4. **SW-420**: press against the inside of the **back wall** — the back
    wall is the mount face, so machine vibration couples directly into the
    sensor. Hot glue transmits vibration better than foam tape.
-5. Magnets into the pockets, backing plate onto the machine, snap on.
+5. Magnets into the pockets, snap the pod onto the machine's side panel.
 
 ## Tuning the model
 
