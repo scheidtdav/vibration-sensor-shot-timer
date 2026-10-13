@@ -38,9 +38,10 @@ the panel. Pull the pod off for USB flashing; snap it back on.
    Adjust `oled_view_w/h` if your module's glass differs.
 2. Seat the OLED against the seat plate; fix with two Kapton tabs or a
    small hot-glue blob on the PCB corners (never on the glass).
-3. ESP32-C3 Super Mini behind the OLED; there is ~7 mm of remaining cavity
-   depth for board + wiring, and the USB-C cable exits through the bottom
-   slot.
+3. ESP32-C3 Super Mini flat against the inner back wall, USB-C pointing
+   down toward the bottom slot, hot-glued. The ~12 mm of cavity depth
+   behind the seat plate fits the board plus the perfboard power bus
+   (glued flat beside it) with Dupont jumpers lying on their sides.
 4. **SW-420**: press against the inside of the **back wall** — the back
    wall is the mount face, so machine vibration couples directly into the
    sensor. Hot glue transmits vibration better than foam tape.

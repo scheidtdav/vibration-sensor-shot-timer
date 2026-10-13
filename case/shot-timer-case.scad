@@ -15,7 +15,8 @@
 // ---------------- Parameters ----------------
 wall      = 3.6;    // wall thickness (thick enough for blind magnet pockets)
 inner_h   = 30;     // cavity height — must fit the 27mm OLED PCB upright
-inner_d   = 16;     // cavity depth: OLED + ESP32 + wiring behind the seat plate
+inner_d   = 20;     // cavity depth: ESP32 + perfboard bus + Dupont jumpers
+                    // (lying on their side) fit behind the seat plate
 inner_w   = 36;     // cavity width — PCB 27mm sits with margin
 tilt_deg  = 12;     // front face tilt: top leans toward the viewer
 
