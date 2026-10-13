@@ -15,13 +15,31 @@ the final time and a good/bad rating.
 
 ### Wiring
 
-```
+```text
 SW-420          ESP32-C3          OLED
- VCC  ────────── 3V3               VCC  ← 3V3
- GND  ────────── GND               GND  ← GND
- DO   ────────── GPIO2             SDA  ← GPIO8
-                                  SCL  ← GPIO9
+ VCC  ──────────┐ 3V3 ┌──────────── VCC
+ GND  ─────────┐│ GND ┌└──────────── GND
+ DO   ──────────┼┼─┐   ││
+                ││ │   │└── SDA  ← GPIO8
+                ││ └───┼─── SCL  ← GPIO9
+                └┴────DO─ GPIO2
 ```
+
+**Power distribution:** the ESP32-C3 Super Mini has only a single 3V3 and a
+single GND pin, but both the OLED and SW-420 need power. Solder the loads
+as a star at the pin: twist the OLED's and SW-420's 3V3 wires together and
+solder the bundle into the ESP32's 3V3 pad; same for the two GND wires.
+Heat-shrink both joints. Combined draw is < 30 mA — a soldered bundle
+handles this without issue. Give the SW-420's pair extra slack so the
+sensor can be repositioned during sensitivity tuning.
+
+**Signal wiring:** SW-420 DO → GPIO2, OLED SDA → GPIO8, SCL → GPIO9.
+
+**Placement inside the case:** ESP32 flat against the inner back wall,
+USB-C pointing down toward the bottom cable slot, hot-glued. SW-420 glued
+beside it on the same back wall (this is the vibration-coupled face). OLED
+slides into its printed seat gap last — connect its four wires before
+fully seating it. See `case/README.md` for assembly order.
 
 Power the ESP32 from USB (bench) or a 5V AC-DC module (HLK-PM01 / Mini560)
 wired to the machine's switched mains. **Mains wiring is at your own risk:
