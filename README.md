@@ -26,12 +26,23 @@ SW-420          ESP32-C3          OLED
 ```
 
 **Power distribution:** the ESP32-C3 Super Mini has only a single 3V3 and a
-single GND pin, but both the OLED and SW-420 need power. Solder the loads
-as a star at the pin: twist the OLED's and SW-420's 3V3 wires together and
-solder the bundle into the ESP32's 3V3 pad; same for the two GND wires.
-Heat-shrink both joints. Combined draw is < 30 mA — a soldered bundle
-handles this without issue. Give the SW-420's pair extra slack so the
-sensor can be repositioned during sensitivity tuning.
+single GND pin, but both the OLED and SW-420 need power. Recommended: a
+**small perfboard power bus** (~15×20 mm). Bridge one copper strip as the
+3V3 rail and one as GND; fit a 2-pin header row for the ESP32 feed and
+one 2-pin row per consumer (OLED, SW-420). Solder male headers onto the
+ESP32's 3V3/GND pads once, then connect everything with standard Dupont
+jumpers — rewiring during sensitivity tuning becomes unplug/replug instead
+of desoldering, and the jumper housings give strain relief at the pins.
+Glue the bus next to the ESP32 on the back wall. Most OLED and SW-420
+modules ship with headers pre-soldered, so the consumer side often needs
+no soldering at all.
+
+Minimal-parts alternative: twist the OLED's and SW-420's 3V3 wires into
+one tinned bundle soldered into the ESP32's single 3V3 pad (same for
+GND), heat-shrunk. Smaller, but harder to rework.
+
+Either way, give the SW-420's pair extra slack so the sensor can be
+repositioned during sensitivity tuning.
 
 **Signal wiring:** SW-420 DO → GPIO2, OLED SDA → GPIO8, SCL → GPIO9.
 
