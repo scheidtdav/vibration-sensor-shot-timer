@@ -1,51 +1,71 @@
-# Case — OLED display pod
+# Case — OLED display pod (v2)
 
-3D-printable pod for the shot timer: OLED behind a front window, ESP32-C3 and
-SW-420 inside, mounted to the machine's side or front panel.
+Two-part, magnetically mounted case for the shot timer.
 
 ## Files
 
-- `shot-timer-case.scad` — parametric OpenSCAD model. Edit the parameters at
-  the top (wall thickness, cavity size, tilt, magnet size) and render.
+- `shot-timer-case.scad` — parametric OpenSCAD model rendering both parts:
+  - **Pod**: tilted display case holding the OLED, ESP32-C3 and SW-420
+  - **Backing plate**: thin plate that sticks to the machine (VHB tape) and
+    carries the counterpart magnets
+
+## Magnetic mounting
+
+Four 8×3 mm neodymium disc magnets total (2 per part):
+
+1. Press two magnets into the **blind pockets in the pod's back face** —
+   pockets are 3.0 mm deep in a 3.6 mm wall, so a 0.6 mm floor keeps them
+   captive; add a drop of CA glue for permanence.
+2. Press the two counterpart magnets into the **backing plate's pockets**
+   (mind the polarity — they must attract the pod's magnets across the gap).
+3. Stick the backing plate to the machine with 3M VHB 4910/300LSE tape.
+   The Plus Aroma's panels are plastic, so the plate is the steel/magnet
+   interface the pod grabs onto.
+
+Pull the pod off for battery/USB flashing; snap it back on — the magnet
+spacing is identical on both parts, so it self-locates.
 
 ## Printing
 
-- Material: PETG or PLA (PETG better next to a warm machine).
-- 0.2 mm layers, 3 perimeters/walls, no supports needed if printed with the
-  mount face down (the wedge is only `tilt_deg` = 12°, within printable
-  overhang).
-- Slicer: render with OpenSCAD (`F6` → export STL), or
-  `openscad -o case.stl shot-timer-case.scad`.
+- Material: PETG (tolerates the machine's warmth better than PLA).
+- 0.2 mm layers, 3 perimeters, 20% infill, **no supports needed**: the model
+  renders in print orientation — pod back face down, 12° tilt within
+  printable overhang.
+- Render STL: `openscad -o case.stl shot-timer-case.scad` (both parts
+  included; separate them in your slicer or comment out one render line).
 
 ## Assembly
 
-1. Test-fit: print once, check the OLED PCB sits behind the window with its
-   glass centered. Adjust `oled_view_w/h` or the ledge height if needed.
-2. Seat the OLED against the internal ledge tabs, secure with a small blob
-   of hot glue or two Kapton tabs on the PCB corners (not on the glass).
-3. ESP32-C3 Super Mini in the cavity behind the OLED, USB-C aligned with the
-   bottom cutout.
-4. SW-420 module: press it against the inside of the **back wall** with a
-   foam pad — the back wall is the mount face, so pump vibration couples
-   directly into it. This is the sensor's sweet spot; if detection is
-   marginal, add a drop of hot glue between module and back wall (hot glue
-   transmits vibration far better than foam tape).
-5. Two 6×3 mm magnets in the back pockets (friction fit, or a drop of CA),
-   then stick to the machine — or skip magnets and use 3M VHB tape on the
-   flat back.
+1. **Test-fit first**: verify the OLED PCB (27×27 mm) slides into the seat
+   gap between front wall and seat plate, glass centered behind the window.
+   Adjust `oled_view_w/h` if your module's glass differs.
+2. Seat the OLED against the seat plate; fix with two Kapton tabs or a
+   small hot-glue blob on the PCB corners (never on the glass).
+3. ESP32-C3 Super Mini behind the OLED; there is ~7 mm of remaining cavity
+   depth for board + wiring, and the USB-C cable exits through the bottom
+   slot.
+4. **SW-420**: press against the inside of the **back wall** — the back
+   wall is the mount face, so machine vibration couples directly into the
+   sensor. Hot glue transmits vibration better than foam tape.
+5. Magnets into the pockets, backing plate onto the machine, snap on.
 
-## Mounting on the Plus Aroma
+## Tuning the model
 
-Best spots: flat side panel near the pump (strongest vibration coupling) or
-the front, angled toward the user by the case's 12° wedge. Magnets need a
-steel surface — the Aroma's panels are plastic, so VHB foam tape is the
-primary mount; magnets are for steel-bodied machines or a stuck-on steel
-washer.
+All dimensions live in the parameters block at the top:
 
-## Notes
+- `oled_view_w/h` — window opening vs. your module's actual glass
+- `inner_d` — cavity depth if you need more wiring room
+- `tilt_deg` — display angle (12° default)
+- `magnet_d/t` — pocket size vs. your actual magnets
 
-- The model is parametric and unverified against a specific OLED module's
-  glass position — do one cheap test print before the final one.
-- `oled_view_h` (12 mm) shows roughly the middle band of the 64-pixel screen
-  at text size 3 (24 px ≈ 9.5 mm); widen the window if you want the full
-  display visible.
+## Design notes
+
+The v2 model uses one consistent coordinate frame (profile: x = height,
+y = depth, z = width; back face on the y=0 plane) instead of rotated 3D
+primitives, precisely because the v1 model produced disconnected,
+floating geometry. Every front-face feature (window, seat plate) is placed
+via the shared `on_front()` transform along the face normal, so the seat
+plate is guaranteed parallel to the window and fused into the side walls
+(it spans the full outer width). Magnet pockets are blind bores (depth
+3.0 mm in a 3.6 mm wall) — the v1 pockets pierced straight through the
+back wall.

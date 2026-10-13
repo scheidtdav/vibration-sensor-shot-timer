@@ -1,107 +1,158 @@
-// Aroma Shot Timer — display pod casing
-// Construction: 2D side profile, linear-extruded across the width.
-// This is easier to reason about and edit than rotated 3D primitives.
+// Aroma Shot Timer — display pod casing (v2, complete redesign)
 //
-// Orientation for printing: back face (mount plane) DOWN on the bed.
-// Mounting: VHB/foam tape on the flat back; optional 6x3mm magnets.
+// Construction: ONE consistent coordinate frame throughout.
+//   Profile frame: x = height, y = depth, z = width.
+//     - Back face (mount plane): the plane y = 0, flat and vertical.
+//     - Bottom face: the plane x = 0.
+//     - Front face: tilted by tilt_deg, leaning OUT at the top.
+//   The final render applies rotate([90,0,0]) so the flat back face
+//   lies on the print bed — that is the intended print orientation,
+//   no supports needed (12 deg overhang).
+//
+// Mounting: magnetic. Two 8x3mm magnets in the pod's back face grab
+// two counterpart magnets (or steel washers) set into a separate
+// backing plate that is stuck to the machine with VHB tape.
+//
+// Part 2 of this file renders the backing plate.
 
 // ---------------- Parameters ----------------
-wall      = 1.8;    // wall thickness
-inner_h   = 14;     // cavity height (OLED + ESP32 + wiring stack)
-inner_d   = 34;     // cavity depth at the bottom
-inner_w   = 40;     // cavity width
+wall      = 3.6;    // wall thickness (thick enough for blind magnet pockets)
+inner_h   = 30;     // cavity height — must fit the 27mm OLED PCB upright
+inner_d   = 16;     // cavity depth: OLED + ESP32 + wiring behind the seat plate
+inner_w   = 36;     // cavity width — PCB 27mm sits with margin
 tilt_deg  = 12;     // front face tilt: top leans toward the viewer
 
-// OLED (0.96" SSD1306 module)
-oled_pcb_w   = 27.0;
-oled_view_w  = 25.4;  // visible window (glass)
-oled_view_h  = 12.0;
-oled_seat   = 2.0;     // PCB sits this far behind the front face
+// OLED (0.96" SSD1306 module, 27x27mm PCB, mounted parallel to front face)
+oled_pcb    = 27.0;
+oled_view_w = 24.0;   // window width  (measure your module's glass!)
+oled_view_h = 12.0;   // window height (glass is ~11mm tall at size-3 text)
+oled_seat   = 2.4;    // gap between inner front face and the seat plate (PCB thickness + slop)
+plate_t     = 2.0;    // seat plate thickness
 
-magnet_d  = 6.2;
-magnet_t  = 3.0;
+// Magnets: 8x3mm neodymium discs
+magnet_d = 8.2;
+magnet_t = 3.0;
+
+// Backing plate (Part 2)
+bp_h = 32;           // plate height (x)
+bp_w = 40;           // plate width  (z)
+bp_t = 3.4;          // plate thickness
 
 $fn = 64;
 
 // ---------------- Derived ----------------
-tilt     = tan(tilt_deg);          // depth growth per unit height
-outer_d  = inner_d + wall;
-outer_h  = inner_h + 2*wall;
-outer_w  = inner_w + 2*wall;
-front_shift = tilt * outer_h;       // how much the top front edge leans out
+shift   = tan(tilt_deg);            // front lean per unit height
+outer_h = inner_h + 2*wall;
+outer_d = inner_d + wall;          // front wall counted via the offset below
+front_shift = shift * outer_h;     // how far the top front edge leans out
+L  = sqrt(outer_h*outer_h + front_shift*front_shift); // front face length
 
-// ---------------- Side profile ----------------
-// Coordinates: x = depth from the mount face, y = height from the bed.
-// Back face is x=0 (flat, mounts to machine). Front face leans outward
-// at the top so the display tilts up toward the user.
-module case_profile() {
+// ---------------- Pod body ----------------
+// Extruded side profile: x = height (0..outer_h), y = depth (0..outer_d).
+module pod_profile() {
   polygon([
-    [0, 0],                        // back-bottom
-    [outer_d, 0],                  // front-bottom
-    [outer_d + front_shift, outer_h],  // front-top (tilted out)
-    [0, outer_h],                  // back-top
+    [0, 0],                         // back-bottom
+    [outer_h, 0],                   // back-top
+    [outer_h, outer_d + front_shift],  // front-top (tilted out)
+    [0, outer_d],                   // front-bottom
   ]);
 }
 
 module cavity_profile() {
-  // inset by wall on front and top/bottom; back stays at x=wall
+  // Inner front face = outer front face offset inward by `wall`
+  // (exactly parallel: same slope, shifted by wall in -y).
   polygon([
     [wall, wall],
-    [outer_d + tilt*wall - oled_seat, wall],
-    [outer_d + tilt*(outer_h - wall) - oled_seat, outer_h - wall],
-    [wall, outer_h - wall],
+    [outer_h - wall, wall],
+    [outer_h - wall, inner_d + front_shift*(outer_h - wall)/outer_h],
+    [wall, inner_d],
   ]);
 }
 
-// ---------------- Window ----------------
-// A rectangle on the tilted front face, cut straight through along the
-// face normal. Placed near the vertical middle of the face.
+module pod_body() {
+  difference() {
+    union() {
+      translate([0, 0, -inner_w/2 - wall])
+        linear_extrude(inner_w + 2*wall) pod_profile();
+      oled_seat_plate();
+    }
+    translate([0, 0, -inner_w/2])
+      linear_extrude(inner_w) cavity_profile();
+    window_cut();
+    magnet_pockets();
+    usb_slot();
+  }
+}
+
+// ---------------- Front-face helpers ----------------
+// All front-face features share this transform: a point on the face at
+// height xh, offset inward along the face normal by `off`.
+// Outward face normal (profile frame): (sin(tilt), -cos(tilt)) i.e. the
+// front face leans out, so inward = (-sin, +cos) direction.
+module on_front(xh, off) {
+  ang = tilt_deg;
+  y_face = outer_d + front_shift * xh / outer_h;
+  nx = -sin(ang);   // inward normal, x component
+  ny = cos(ang);    // inward normal, y component
+  translate([xh + nx*off, y_face + ny*off, 0])
+    rotate([0, 0, ang])
+      children();
+}
+
+// Window: rectangular cut through the front wall, along the face normal.
+// Cube is thin in local y (depth); rotate([0,0,tilt]) aligns its -y face
+// with the outward face normal.
 module window_cut() {
-  cx = outer_d + tilt*outer_h/2;              // approx face mid-depth
-  rotate([0, -tilt_deg, 0])                  // align with the face normal
-    translate([cx - oled_seat/2, outer_h/2, 0])
-      translate([-(oled_view_w + 2)/2, -(oled_view_h + 2)/2, -wall])
-        cube([oled_view_w + 2, oled_view_h + 2, wall + 2*oled_seat + 2]);
+  on_front(outer_h/2, 0)
+    cube([oled_view_h + 2, 2*wall + 4, oled_view_w + 2], center = true);
 }
 
-// ---------------- Mount features ----------------
-// Magnet pockets: blind holes in the back face (mount plane).
+// OLED seat plate: a full-width plate `oled_seat` behind the inner front
+// face, with a window-sized hole. The PCB slides into the gap between
+// plate and front wall, glass toward the window. The plate spans the
+// full cavity width PLUS 2*wall so it fuses into the side walls —
+// no floating parts.
+module oled_seat_plate() {
+  difference() {
+    on_front(outer_h/2, wall + oled_seat + plate_t/2)
+      cube([oled_pcb, plate_t, inner_w + 2*wall], center = true);
+    on_front(outer_h/2, wall + oled_seat + plate_t/2)
+      cube([oled_view_h + 2, plate_t + 4, oled_view_w + 2], center = true);
+  }
+}
+
+// ---------------- Back-face mount features ----------------
+// Blind magnet pockets drilled into the back face (y = 0 plane),
+// axis along +y. Pocket depth < wall, so a floor remains.
 module magnet_pockets() {
-  for (my = [wall + magnet_d/2 + 2, outer_h - wall - magnet_d/2 - 2])
-    translate([magnet_t/2, my, 0])
-      rotate([0, 90, 0])
-        cylinder(d = magnet_d, h = magnet_t + 1, center = true);
+  for (mx = [wall + magnet_d/2 + 1, outer_h - wall - magnet_d/2 - 1])
+    translate([mx, -0.05, 0])
+      rotate([-90, 0, 0])
+        cylinder(d = magnet_d, h = magnet_t);
 }
 
-// USB-C cable slot in the bottom face.
-module usb_cut() {
-  translate([outer_d/2 + 2, -0.01, outer_w/2 - 6])
-    cube([8, wall + 0.5, 12]);   // x=depth slot through bottom wall
+// USB-C cable slot through the bottom face (x = 0 plane), near the front.
+module usb_slot() {
+  translate([-0.1, outer_d - 11, -6])
+    cube([wall + 0.2, 9, 12]);
 }
 
-// ---------------- OLED shelf ----------------
-// Two ledges the OLED PCB rests against, behind the window.
-module oled_shelf() {
-  for (sx = [-(oled_pcb_w/2 - 2), oled_pcb_w/2 - 2])
-    translate([outer_d + tilt*(outer_h/2) - oled_seat - 1.0,
-               outer_h/2 - oled_view_h/2 - 3, outer_w/2 + sx])
-      cube([2.5, 1.6, 3.2]);
+// ---------------- Part 2: backing plate ----------------
+// Sticks to the machine with VHB tape; holds the counterpart magnets
+// (or steel washers) that the pod grabs. Same magnet x-spacing as the pod.
+module backing_plate() {
+  difference() {
+    translate([-bp_h/2, 0, -bp_w/2]) cube([bp_h, bp_t, bp_w]);
+    for (mx = [wall + magnet_d/2 + 1 - outer_h/2, outer_h/2 - wall - magnet_d/2 - 1])
+      translate([mx, bp_t + 0.05, 0])
+        rotate([90, 0, 0])
+          cylinder(d = magnet_d, h = magnet_t);
+  }
 }
 
-// ---------------- Render ----------------
-difference() {
-  // extrude the side profile across the width (z = width axis)
-  translate([0, 0, -outer_w/2])
-    linear_extrude(outer_w)
-      case_profile();
-
-  translate([0, 0, -inner_w/2])
-    linear_extrude(inner_w)
-      cavity_profile();
-
-  window_cut();
-  magnet_pockets();
-  usb_cut();
-}
-
-oled_shelf();
+// ---------------- Render (print orientation) ----------------
+// rotate([90,0,0]) puts the pod's flat back face (y=0) onto the bed (z=0):
+// the tilted front face points up at 12 deg — printable without supports.
+// The backing plate prints flat beside it.
+rotate([90, 0, 0]) pod_body();
+translate([0, 0, -(inner_w + 2*wall) - 15]) backing_plate();
